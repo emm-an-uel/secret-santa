@@ -7,23 +7,23 @@ import android.text.TextWatcher
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
-import androidx.core.view.setMargins
 
 class MainActivity : AppCompatActivity() {
-    lateinit var linearLayout: LinearLayout
+    lateinit var linearLayoutNames: LinearLayout
     lateinit var btnGenerate: Button
     lateinit var btnReset: Button
     lateinit var mapNames: MutableMap<Int, String>
-    var numOfEditTexts = 2
-    var users = 0
+    lateinit var mapSecretSanta: MutableMap<String, String>
+    var numOfUsers = 2
 
     lateinit var linearLayoutMap: LinearLayout
+    lateinit var linearLayoutResults: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        linearLayout = findViewById(R.id.linearLayout)
+        linearLayoutNames = findViewById(R.id.linearLayoutNames)
         btnGenerate = findViewById(R.id.btnGenerate)
         btnReset = findViewById(R.id.btnReset)
         mapNames = mutableMapOf()
@@ -35,16 +35,19 @@ class MainActivity : AppCompatActivity() {
         linearLayoutMap = findViewById(R.id.linearLayoutMap)
         updateLinearLayoutMap()
 
+        linearLayoutResults = findViewById(R.id.linearLayoutResults)
+
         setTextWatchers()
         btnGenerate.setOnClickListener {
-
+            generatePairings()
+            displayPairings()
         }
 
         btnReset.setOnClickListener {
             mapNames.clear()
-            linearLayout.removeAllViews()
-            numOfEditTexts = 2
-            for (n in 0 until numOfEditTexts) {
+            linearLayoutNames.removeAllViews()
+            numOfUsers = 2
+            for (n in 0 until numOfUsers) {
                 val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 layoutParams.setMargins(40, 3, 40, 0)
 
@@ -54,16 +57,55 @@ class MainActivity : AppCompatActivity() {
                     hint = "Enter person's name"
                 }
 
-                linearLayout.addView(newEditText, layoutParams)
+                linearLayoutNames.addView(newEditText, layoutParams)
                 mapNames[n] = ""
             }
             updateLinearLayoutMap()
+            setTextWatchers()
+        }
+    }
+
+    private fun generatePairings() {
+        // THE LOGIC: code runs through every person in listOfGiving and pairs them up with someone in listOfReceiving
+        // once the person in listOfReceiving has a pair, their number will be removed from listOfReceiving so they don't get double gifts
+        // if the number in listOfGiving == listOfReceiving (ie person is paired with themselves), code will be re-run so nobody is paired with themselves
+        mapSecretSanta = mutableMapOf()
+        val listOfReceiving = arrayListOf<Int>()
+        val listOfGiving = arrayListOf<Int>()
+        for (k in mapNames.keys) {
+            if (mapNames[k] != "") {
+                listOfReceiving.add(k)
+                listOfGiving.add(k)
+            }
+        }
+
+        for (n in listOfGiving) {
+            val personGiving = mapNames[n]!!
+            val i = (0 until listOfReceiving.size).random()
+            val indexReceiving = listOfReceiving[i]
+            val personReceiving = mapNames[indexReceiving]!!
+            listOfReceiving.remove(indexReceiving)
+
+            mapSecretSanta[personGiving] = personReceiving
+        }
+    }
+
+    private fun displayPairings() {
+        linearLayoutResults.removeAllViews()
+        val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        layoutParams.setMargins(10, 0, 10, 0)
+
+        for (k in mapSecretSanta.keys) {
+            val v = mapSecretSanta[k]
+            val tv = TextView(this)
+            tv.text = "$k: $v"
+            linearLayoutResults.addView(tv, layoutParams)
         }
     }
 
     private fun setTextWatchers() {
-        for (n in 0 until numOfEditTexts) {
-            val et: EditText = linearLayout[n] as EditText
+        for (n in 0 until numOfUsers) {
+            val et: EditText = linearLayoutNames[n] as EditText
             et.addTextChangedListener(object: TextWatcher {
                 override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                     // do nothing
@@ -93,7 +135,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkForBlanks() {
-        if (!mapNames.containsValue("")) { // if none of the existing editTexts are blank
+        if (!mapNames.containsValue("") && numOfUsers < 10) { // if none of the existing editTexts are blank && max 10 people
             val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             layoutParams.setMargins(40, 3, 40, 0)
 
@@ -103,10 +145,10 @@ class MainActivity : AppCompatActivity() {
                 hint = "Enter person's name"
             }
 
-            linearLayout.addView(newEditText, layoutParams)
-            mapNames[numOfEditTexts] = ""
+            linearLayoutNames.addView(newEditText, layoutParams)
+            mapNames[numOfUsers] = ""
             updateLinearLayoutMap()
-            numOfEditTexts++
+            numOfUsers++
             setTextWatchers()
         }
     }
