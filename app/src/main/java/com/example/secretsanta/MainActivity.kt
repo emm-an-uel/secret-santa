@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
         linearLayoutNames = findViewById(R.id.linearLayoutNames)
         btnGenerate = findViewById(R.id.btnGenerate)
         btnReset = findViewById(R.id.btnReset)
+        mapSecretSanta = mutableMapOf()
         mapNames = mutableMapOf()
         mapNames.apply {
             put(0, "")
@@ -39,13 +40,14 @@ class MainActivity : AppCompatActivity() {
         setTextWatchers()
         btnGenerate.setOnClickListener {
             if (mapNames.size == 3 && mapNames.containsValue("")) { // min. 3 names, if map only contains 3 and any of them are empty, not valid
-                Snackbar.make(linearLayoutNames, "Input at least 3 names!", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(btnGenerate, "Input at least 3 names!", Snackbar.LENGTH_SHORT).show()
             } else {
                 generatePairings()
             }
         }
 
         btnReset.setOnClickListener {
+            Snackbar.make(btnReset, "Names cleared", Snackbar.LENGTH_SHORT).show()
             mapNames.clear()
             mapSecretSanta.clear()
             linearLayoutNames.removeAllViews()
