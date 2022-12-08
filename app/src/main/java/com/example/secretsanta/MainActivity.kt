@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnReset: Button
     lateinit var mapNames: MutableMap<Int, String>
     lateinit var mapSecretSanta: MutableMap<String, String>
+    lateinit var listSecretSanta: ArrayList<PersonPair>
     var numOfUsers = 3
     var selfPaired = false
 
@@ -28,6 +29,7 @@ class MainActivity : AppCompatActivity() {
         btnGenerate = findViewById(R.id.btnGenerate)
         btnReset = findViewById(R.id.btnReset)
         mapSecretSanta = mutableMapOf()
+        listSecretSanta = arrayListOf()
         mapNames = mutableMapOf()
         mapNames.apply {
             put(0, "")
@@ -96,6 +98,7 @@ class MainActivity : AppCompatActivity() {
             listOfReceiving.remove(indexReceiving)
 
             mapSecretSanta[personGiving] = personReceiving
+            listSecretSanta.add(PersonPair(personGiving, personReceiving))
         }
 
         displayPairings()
