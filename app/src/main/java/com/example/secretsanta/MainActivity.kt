@@ -17,7 +17,6 @@ class MainActivity : AppCompatActivity() {
     var numOfUsers = 2
     var selfPaired = false
 
-    lateinit var linearLayoutMap: LinearLayout
     lateinit var linearLayoutResults: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,9 +32,6 @@ class MainActivity : AppCompatActivity() {
             put(1, "")
         }
 
-        linearLayoutMap = findViewById(R.id.linearLayoutMap)
-        updateLinearLayoutMap()
-
         linearLayoutResults = findViewById(R.id.linearLayoutResults)
 
         setTextWatchers()
@@ -45,7 +41,9 @@ class MainActivity : AppCompatActivity() {
 
         btnReset.setOnClickListener {
             mapNames.clear()
+            mapSecretSanta.clear()
             linearLayoutNames.removeAllViews()
+            linearLayoutResults.removeAllViews()
             numOfUsers = 2
             for (n in 0 until numOfUsers) {
                 val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
@@ -60,7 +58,6 @@ class MainActivity : AppCompatActivity() {
                 linearLayoutNames.addView(newEditText, layoutParams)
                 mapNames[n] = ""
             }
-            updateLinearLayoutMap()
             setTextWatchers()
         }
     }
@@ -133,20 +130,9 @@ class MainActivity : AppCompatActivity() {
 
                 override fun afterTextChanged(p0: Editable?) {
                     mapNames[n] = p0.toString()
-                    updateLinearLayoutMap()
                     checkForBlanks()
                 }
             })
-        }
-    }
-
-    private fun updateLinearLayoutMap() {
-        linearLayoutMap.removeAllViews()
-        for (k in mapNames.keys) {
-            val v = mapNames[k]
-            val tv = TextView(this)
-            tv.text = "$k - $v"
-            linearLayoutMap.addView(tv)
         }
     }
 
@@ -163,7 +149,6 @@ class MainActivity : AppCompatActivity() {
 
             linearLayoutNames.addView(newEditText, layoutParams)
             mapNames[numOfUsers] = ""
-            updateLinearLayoutMap()
             numOfUsers++
             setTextWatchers()
         }
