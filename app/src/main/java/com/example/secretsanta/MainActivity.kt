@@ -85,8 +85,6 @@ class MainActivity : AppCompatActivity() {
             val indexReceiving = listOfReceiving[i]
             val personReceiving = mapNames[indexReceiving]!!
 
-            // restart whole process if personGiving == personReceiving
-            // restarting everything is necessary otherwise it could be that the first 3 are ok, but the last person is self-paired. this would cause infinite loop
             if (personGiving == personReceiving) {
                 selfPaired = true
             }
@@ -99,6 +97,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun displayPairings() {
+        // restart whole process if personGiving == personReceiving
+        // restarting everything is necessary otherwise it could be that the first 3 are ok, but the last person is self-paired. this would cause infinite loop
         if (!selfPaired) {
             linearLayoutResults.removeAllViews()
             val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(
