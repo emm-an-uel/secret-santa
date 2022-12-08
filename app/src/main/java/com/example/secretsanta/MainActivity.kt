@@ -12,6 +12,7 @@ import androidx.core.view.setMargins
 class MainActivity : AppCompatActivity() {
     lateinit var linearLayout: LinearLayout
     lateinit var btnGenerate: Button
+    lateinit var btnReset: Button
     lateinit var mapNames: MutableMap<Int, String>
     var numOfEditTexts = 2
     var users = 0
@@ -24,6 +25,7 @@ class MainActivity : AppCompatActivity() {
 
         linearLayout = findViewById(R.id.linearLayout)
         btnGenerate = findViewById(R.id.btnGenerate)
+        btnReset = findViewById(R.id.btnReset)
         mapNames = mutableMapOf()
         mapNames.apply {
             put(0, "")
@@ -34,6 +36,29 @@ class MainActivity : AppCompatActivity() {
         updateLinearLayoutMap()
 
         setTextWatchers()
+        btnGenerate.setOnClickListener {
+
+        }
+
+        btnReset.setOnClickListener {
+            mapNames.clear()
+            linearLayout.removeAllViews()
+            numOfEditTexts = 2
+            for (n in 0 until numOfEditTexts) {
+                val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                layoutParams.setMargins(40, 3, 40, 0)
+
+                val newEditText = EditText(this)
+                newEditText.apply {
+                    setBackgroundColor(ContextCompat.getColor(this@MainActivity, com.google.android.material.R.color.mtrl_btn_transparent_bg_color))
+                    hint = "Enter person's name"
+                }
+
+                linearLayout.addView(newEditText, layoutParams)
+                mapNames[n] = ""
+            }
+            updateLinearLayoutMap()
+        }
     }
 
     private fun setTextWatchers() {
