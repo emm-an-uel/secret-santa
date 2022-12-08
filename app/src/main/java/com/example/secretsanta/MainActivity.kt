@@ -1,13 +1,23 @@
 package com.example.secretsanta
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.pdf.PdfDocument
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.DisplayMetrics
+import android.view.LayoutInflater
+import android.view.View
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
+import androidx.window.layout.WindowMetricsCalculator
 import com.google.android.material.snackbar.Snackbar
+import java.io.File
+import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
     lateinit var linearLayoutNames: LinearLayout
@@ -102,6 +112,47 @@ class MainActivity : AppCompatActivity() {
         }
 
         displayPairings()
+        pairingsToPdf()
+    }
+
+    private fun pairingsToPdf() {
+        for (person in listSecretSanta) {
+            // inflate the layout
+            val inflater = LayoutInflater.from(this)
+            val view = inflater.inflate(R.layout.secret_santa_pdf, null)
+
+            // populate layout with giver and receiver names
+            val tvGiver = view.findViewById<TextView>(R.id.tvGiver)
+            val tvReceiver = view.findViewById<TextView>(R.id.tvReceiver)
+            tvGiver.text = person.giver
+            tvReceiver.text = person.receiver
+
+            // fetch dimensions of viewport
+            val windowMetrics = WindowMetricsCalculator.getOrCreate().computeCurrentWindowMetrics(this)
+            val currentBounds = windowMetrics.bounds
+            val width = currentBounds.width()
+            val height = currentBounds.height()
+            
+
+            // create bitmap object using above width and height
+            view.layout(0, 0, width, height)
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            view.draw(canvas)
+            Bitmap.createScaledBitmap(bitmap, 595, 842, true)
+
+            // attach bitmap to pdf
+            val pdfDocument = PdfDocument()
+            val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+            val page = pdfDocument.startPage(pageInfo)
+            page.canvas.drawBitmap(bitmap, 0F, 0F, null)
+            pdfDocument.finishPage(page)
+
+            // save file
+            val filePath = File(this.getExternalFilesDir(null), "bitmapPDF.pdf")
+            pdfDocument.writeTo(FileOutputStream(filePath))
+            pdfDocument.close()
+        }
     }
 
     private fun displayPairings() {
