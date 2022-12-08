@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var mapNames: MutableMap<Int, String>
     lateinit var mapSecretSanta: MutableMap<String, String>
     var numOfUsers = 2
+    var selfPaired = false
 
     lateinit var linearLayoutMap: LinearLayout
     lateinit var linearLayoutResults: LinearLayout
@@ -40,7 +41,6 @@ class MainActivity : AppCompatActivity() {
         setTextWatchers()
         btnGenerate.setOnClickListener {
             generatePairings()
-            displayPairings()
         }
 
         btnReset.setOnClickListener {
@@ -84,22 +84,38 @@ class MainActivity : AppCompatActivity() {
             val i = (0 until listOfReceiving.size).random()
             val indexReceiving = listOfReceiving[i]
             val personReceiving = mapNames[indexReceiving]!!
+
+            // restart whole process if personGiving == personReceiving
+            // restarting everything is necessary otherwise it could be that the first 3 are ok, but the last person is self-paired. this would cause infinite loop
+            if (personGiving == personReceiving) {
+                selfPaired = true
+            }
             listOfReceiving.remove(indexReceiving)
 
             mapSecretSanta[personGiving] = personReceiving
         }
+
+        displayPairings()
     }
 
     private fun displayPairings() {
-        linearLayoutResults.removeAllViews()
-        val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-        layoutParams.setMargins(10, 0, 10, 0)
+        if (!selfPaired) {
+            linearLayoutResults.removeAllViews()
+            val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            layoutParams.setMargins(10, 0, 10, 0)
 
-        for (k in mapSecretSanta.keys) {
-            val v = mapSecretSanta[k]
-            val tv = TextView(this)
-            tv.text = "$k: $v"
-            linearLayoutResults.addView(tv, layoutParams)
+            for (k in mapSecretSanta.keys) {
+                val v = mapSecretSanta[k]
+                val tv = TextView(this)
+                tv.text = "$k: $v"
+                linearLayoutResults.addView(tv, layoutParams)
+            }
+        } else {
+            selfPaired = false
+            generatePairings()
         }
     }
 
