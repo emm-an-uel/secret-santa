@@ -30,6 +30,14 @@
             android:background="@android:color/transparent"
             android:hint="Enter person's name" />
 
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="15dp"
+            android:layout_marginVertical="10dp"
+            android:background="@android:color/transparent"
+            android:hint="Enter person's name" />
+
     </LinearLayout>
 
     <LinearLayout

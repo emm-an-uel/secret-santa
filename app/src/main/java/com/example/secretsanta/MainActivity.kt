@@ -7,6 +7,7 @@ import android.text.TextWatcher
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
     lateinit var linearLayoutNames: LinearLayout
@@ -14,7 +15,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnReset: Button
     lateinit var mapNames: MutableMap<Int, String>
     lateinit var mapSecretSanta: MutableMap<String, String>
-    var numOfUsers = 2
+    var numOfUsers = 3
     var selfPaired = false
 
     lateinit var linearLayoutResults: LinearLayout
@@ -30,13 +31,18 @@ class MainActivity : AppCompatActivity() {
         mapNames.apply {
             put(0, "")
             put(1, "")
+            put(2, "")
         }
 
         linearLayoutResults = findViewById(R.id.linearLayoutResults)
 
         setTextWatchers()
         btnGenerate.setOnClickListener {
-            generatePairings()
+            if (mapNames.size == 3 && mapNames.containsValue("")) { // min. 3 names, if map only contains 3 and any of them are empty, not valid
+                Snackbar.make(linearLayoutNames, "Input at least 3 names!", Snackbar.LENGTH_SHORT).show()
+            } else {
+                generatePairings()
+            }
         }
 
         btnReset.setOnClickListener {
@@ -44,7 +50,7 @@ class MainActivity : AppCompatActivity() {
             mapSecretSanta.clear()
             linearLayoutNames.removeAllViews()
             linearLayoutResults.removeAllViews()
-            numOfUsers = 2
+            numOfUsers = 3
             for (n in 0 until numOfUsers) {
                 val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 layoutParams.setMargins(40, 3, 40, 0)
