@@ -3,18 +3,15 @@ package com.example.secretsanta
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.pdf.PdfDocument
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
-import androidx.window.layout.WindowMetricsCalculator
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import java.io.FileOutputStream
@@ -112,10 +109,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         displayPairings()
-        pairingsToPdf()
     }
 
     private fun pairingsToPdf() {
+        var toasted = false
         for (person in listSecretSanta) {
             // inflate the layout
             val inflater = LayoutInflater.from(this)
@@ -127,30 +124,40 @@ class MainActivity : AppCompatActivity() {
             tvGiver.text = person.giver
             tvReceiver.text = person.receiver
 
-            // fetch dimensions of viewport
-            val windowMetrics = WindowMetricsCalculator.getOrCreate().computeCurrentWindowMetrics(this)
-            val currentBounds = windowMetrics.bounds
-            val width = currentBounds.width()
-            val height = currentBounds.height()
-            
-
-            // create bitmap object using above width and height
-            view.layout(0, 0, width, height)
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
+            // get view dimensions
+            view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+            val bitmap: Bitmap = Bitmap.createBitmap(view.measuredWidth, view.measuredHeight, Bitmap.Config.ARGB_8888)
+            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 595, 842, true)
+            val canvas = Canvas(scaledBitmap)
+            view.layout(0, 0, view.measuredWidth, view.measuredHeight)
             view.draw(canvas)
-            Bitmap.createScaledBitmap(bitmap, 595, 842, true)
 
-            // attach bitmap to pdf
+            // debugging
+            val imageView = findViewById<ImageView>(R.id.pdfResult)
+            imageView.setImageBitmap(scaledBitmap)
+
+            // create pdf
             val pdfDocument = PdfDocument()
-            val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
-            val page = pdfDocument.startPage(pageInfo)
-            page.canvas.drawBitmap(bitmap, 0F, 0F, null)
+            val pageInfo: PdfDocument.PageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+            val page: PdfDocument.Page = pdfDocument.startPage(pageInfo)
+            page.canvas.drawBitmap(scaledBitmap, 0F, 0F, null)
             pdfDocument.finishPage(page)
 
-            // save file
-            val filePath = File(this.getExternalFilesDir(null), "bitmapPDF.pdf")
-            pdfDocument.writeTo(FileOutputStream(filePath))
+            // save pdf
+            val file = File(this.getExternalFilesDir(null), "examplePDF.pdf")
+            try {
+                pdfDocument.writeTo(FileOutputStream(file))
+                if (!toasted) {
+                    Toast.makeText(this, "PDF file generated", Toast.LENGTH_SHORT).show()
+                    toasted = true // ensures only 1 toast is shown
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                if (!toasted) {
+                    Toast.makeText(this, "Failed to generate PDF file", Toast.LENGTH_SHORT).show()
+                    toasted = true
+                }
+            }
             pdfDocument.close()
         }
     }
@@ -172,6 +179,7 @@ class MainActivity : AppCompatActivity() {
                 tv.text = "$k: $v"
                 linearLayoutResults.addView(tv, layoutParams)
             }
+            pairingsToPdf()
         } else {
             selfPaired = false
             generatePairings()
