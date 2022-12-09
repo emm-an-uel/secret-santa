@@ -147,7 +147,9 @@ class MainActivity : AppCompatActivity() {
             pdfDocument.finishPage(page)
 
             // save pdf
-            val filePath = File(this.getExternalFilesDir(null), "examplePDF.pdf")
+            val giver = person.giver
+            val fileName = "$giver.pdf"
+            val filePath = File(this.getExternalFilesDir(null), fileName)
             pdfDocument.writeTo(FileOutputStream(filePath))
             pdfDocument.close()
         }
