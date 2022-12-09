@@ -1,5 +1,6 @@
 package com.example.secretsanta
 
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.pdf.PdfDocument
@@ -125,39 +126,29 @@ class MainActivity : AppCompatActivity() {
             tvReceiver.text = person.receiver
 
             // get view dimensions
+            val width = Resources.getSystem().displayMetrics.widthPixels
+            val height = Resources.getSystem().displayMetrics.heightPixels
             view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-            val bitmap: Bitmap = Bitmap.createBitmap(view.measuredWidth, view.measuredHeight, Bitmap.Config.ARGB_8888)
-            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 595, 842, true)
-            val canvas = Canvas(scaledBitmap)
-            view.layout(0, 0, view.measuredWidth, view.measuredHeight)
+            view.layout(0, 0, width, height)
+            val bitmap = Bitmap.createBitmap(view.measuredWidth, view.measuredHeight, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
             view.draw(canvas)
+            Bitmap.createScaledBitmap(bitmap, 595, 842, true)
 
             // debugging
             val imageView = findViewById<ImageView>(R.id.pdfResult)
-            imageView.setImageBitmap(scaledBitmap)
+            imageView.setImageBitmap(bitmap)
 
             // create pdf
             val pdfDocument = PdfDocument()
-            val pageInfo: PdfDocument.PageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
-            val page: PdfDocument.Page = pdfDocument.startPage(pageInfo)
-            page.canvas.drawBitmap(scaledBitmap, 0F, 0F, null)
+            val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+            val page = pdfDocument.startPage(pageInfo)
+            page.canvas.drawBitmap(bitmap, 0F, 0F, null)
             pdfDocument.finishPage(page)
 
             // save pdf
-            val file = File(this.getExternalFilesDir(null), "examplePDF.pdf")
-            try {
-                pdfDocument.writeTo(FileOutputStream(file))
-                if (!toasted) {
-                    Toast.makeText(this, "PDF file generated", Toast.LENGTH_SHORT).show()
-                    toasted = true // ensures only 1 toast is shown
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                if (!toasted) {
-                    Toast.makeText(this, "Failed to generate PDF file", Toast.LENGTH_SHORT).show()
-                    toasted = true
-                }
-            }
+            val filePath = File(this.getExternalFilesDir(null), "examplePDF.pdf")
+            pdfDocument.writeTo(FileOutputStream(filePath))
             pdfDocument.close()
         }
     }
