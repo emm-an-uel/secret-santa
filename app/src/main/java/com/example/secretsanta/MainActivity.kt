@@ -30,8 +30,6 @@ class MainActivity : AppCompatActivity() {
     var numOfUsers = 3
     var selfPaired = false
 
-    lateinit var linearLayoutResults: LinearLayout
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -48,14 +46,14 @@ class MainActivity : AppCompatActivity() {
             put(2, "")
         }
 
-        linearLayoutResults = findViewById(R.id.linearLayoutResults)
-
         setTextWatchers()
         btnGenerate.setOnClickListener {
             if (mapNames.size == 3 && mapNames.containsValue("")) { // min. 3 names, if map only contains 3 and any of them are empty, not valid
                 Snackbar.make(btnGenerate, "Input at least 3 names!", Snackbar.LENGTH_SHORT).show()
             } else {
                 generatePairings()
+                pairingsToPdf()
+                Snackbar.make(btnGenerate, "PDFs generated", Snackbar.LENGTH_SHORT).show()
             }
         }
 
@@ -64,7 +62,6 @@ class MainActivity : AppCompatActivity() {
             mapNames.clear()
             mapSecretSanta.clear()
             linearLayoutNames.removeAllViews()
-            linearLayoutResults.removeAllViews()
             numOfUsers = 3
             for (n in 0 until numOfUsers) {
                 val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
@@ -111,8 +108,6 @@ class MainActivity : AppCompatActivity() {
             mapSecretSanta[personGiving] = personReceiving
             listSecretSanta.add(PersonPair(personGiving, personReceiving))
         }
-
-        displayPairings()
     }
 
     private fun pairingsToPdf() {
@@ -122,10 +117,8 @@ class MainActivity : AppCompatActivity() {
             val view = inflater.inflate(R.layout.secret_santa_pdf, null)
 
             // populate layout with giver and receiver names
-            val tvGiver = view.findViewById<TextView>(R.id.tvGiver)
-            val tvReceiver = view.findViewById<TextView>(R.id.tvReceiver)
-            tvGiver.text = person.giver
-            tvReceiver.text = person.receiver
+            val btnReceiver = view.findViewById<Button>(R.id.button)
+            btnReceiver.text = person.receiver
 
             // using Gkemon's xml to pdf generator
             PdfGenerator.getBuilder()
@@ -134,7 +127,7 @@ class MainActivity : AppCompatActivity() {
                 .fromView(view)
                 .setFileName(person.giver) // file name is giver's name
                 .setFolderNameOrPath("PDF-folder")
-                .actionAfterPDFGeneration(PdfGenerator.ActionAfterPDFGeneration.OPEN)
+                .actionAfterPDFGeneration(PdfGenerator.ActionAfterPDFGeneration.NONE)
                 .build(object: PdfGeneratorListener() {
                     override fun onStartPDFGeneration() {
                     }
@@ -142,30 +135,6 @@ class MainActivity : AppCompatActivity() {
                     override fun onFinishPDFGeneration() {
                     }
                 })
-        }
-    }
-
-    private fun displayPairings() {
-        // restart whole process if personGiving == personReceiving
-        // restarting everything is necessary otherwise it could be that the first 3 are ok, but the last person is self-paired. this would cause infinite loop
-        if (!selfPaired) {
-            linearLayoutResults.removeAllViews()
-            val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            layoutParams.setMargins(10, 0, 10, 0)
-
-            for (k in mapSecretSanta.keys) {
-                val v = mapSecretSanta[k]
-                val tv = TextView(this)
-                tv.text = "$k: $v"
-                linearLayoutResults.addView(tv, layoutParams)
-            }
-            pairingsToPdf()
-        } else {
-            selfPaired = false
-            generatePairings()
         }
     }
 
