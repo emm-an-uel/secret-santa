@@ -13,6 +13,9 @@ import android.view.View
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
+import com.gkemon.XMLtoPDF.PdfGenerator
+import com.gkemon.XMLtoPDF.PdfGeneratorListener
+import com.gkemon.XMLtoPDF.model.FailureResponse
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import java.io.FileOutputStream
@@ -113,7 +116,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun pairingsToPdf() {
-        var toasted = false
         for (person in listSecretSanta) {
             // inflate the layout
             val inflater = LayoutInflater.from(this)
@@ -125,33 +127,27 @@ class MainActivity : AppCompatActivity() {
             tvGiver.text = person.giver
             tvReceiver.text = person.receiver
 
-            // get view dimensions
-            val width = Resources.getSystem().displayMetrics.widthPixels
-            val height = Resources.getSystem().displayMetrics.heightPixels
-            view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-            view.layout(0, 0, width, height)
-            val bitmap = Bitmap.createBitmap(view.measuredWidth, view.measuredHeight, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
-            view.draw(canvas)
-            Bitmap.createScaledBitmap(bitmap, 595, 842, true)
-
-            // debugging
-            val imageView = findViewById<ImageView>(R.id.pdfResult)
-            imageView.setImageBitmap(bitmap)
-
-            // create pdf
-            val pdfDocument = PdfDocument()
-            val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
-            val page = pdfDocument.startPage(pageInfo)
-            page.canvas.drawBitmap(bitmap, 0F, 0F, null)
-            pdfDocument.finishPage(page)
-
-            // save pdf
+            // set pdf file name
             val giver = person.giver
             val fileName = "$giver.pdf"
-            val filePath = File(this.getExternalFilesDir(null), fileName)
-            pdfDocument.writeTo(FileOutputStream(filePath))
-            pdfDocument.close()
+
+            // using Gkemon's xml to pdf generator
+            PdfGenerator.getBuilder()
+                .setContext(this)
+                .fromViewSource()
+                .fromView(view)
+                .setFileName(fileName)
+                .setFolderNameOrPath("PDF-folder")
+                .actionAfterPDFGeneration(PdfGenerator.ActionAfterPDFGeneration.OPEN)
+                .build(object: PdfGeneratorListener() {
+                    override fun onStartPDFGeneration() {
+                        TODO("Not yet implemented")
+                    }
+
+                    override fun onFinishPDFGeneration() {
+                        TODO("Not yet implemented")
+                    }
+                })
         }
     }
 
