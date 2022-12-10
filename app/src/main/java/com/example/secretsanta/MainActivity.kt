@@ -127,25 +127,19 @@ class MainActivity : AppCompatActivity() {
             tvGiver.text = person.giver
             tvReceiver.text = person.receiver
 
-            // set pdf file name
-            val giver = person.giver
-            val fileName = "$giver.pdf"
-
             // using Gkemon's xml to pdf generator
             PdfGenerator.getBuilder()
                 .setContext(this)
                 .fromViewSource()
                 .fromView(view)
-                .setFileName(fileName)
+                .setFileName(person.giver) // file name is giver's name
                 .setFolderNameOrPath("PDF-folder")
                 .actionAfterPDFGeneration(PdfGenerator.ActionAfterPDFGeneration.OPEN)
                 .build(object: PdfGeneratorListener() {
                     override fun onStartPDFGeneration() {
-                        TODO("Not yet implemented")
                     }
 
                     override fun onFinishPDFGeneration() {
-                        TODO("Not yet implemented")
                     }
                 })
         }
