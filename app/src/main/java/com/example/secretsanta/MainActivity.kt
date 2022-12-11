@@ -1,24 +1,17 @@
 package com.example.secretsanta
 
-import android.content.res.Resources
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.pdf.PdfDocument
+import android.content.res.ColorStateList
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import com.gkemon.XMLtoPDF.PdfGenerator
 import com.gkemon.XMLtoPDF.PdfGeneratorListener
-import com.gkemon.XMLtoPDF.model.FailureResponse
 import com.google.android.material.snackbar.Snackbar
-import java.io.File
-import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
     lateinit var linearLayoutNames: LinearLayout
@@ -30,9 +23,25 @@ class MainActivity : AppCompatActivity() {
     var numOfUsers = 3
     var selfPaired = false
 
+    lateinit var listOfCodes: ArrayList<String>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        listOfCodes = arrayListOf()
+        listOfCodes.apply {
+            add("Horse")
+            add("Monkey")
+            add("Tiger")
+            add("Cat")
+            add("Dog")
+            add("Ant")
+            add("Beetle")
+            add("Dolphin")
+            add("Whale")
+            add("Fish")
+        }
 
         linearLayoutNames = findViewById(R.id.linearLayoutNames)
         btnGenerate = findViewById(R.id.btnGenerate)
@@ -52,8 +61,6 @@ class MainActivity : AppCompatActivity() {
                 Snackbar.make(btnGenerate, "Input at least 3 names!", Snackbar.LENGTH_SHORT).show()
             } else {
                 generatePairings()
-                pairingsToPdf()
-                Snackbar.make(btnGenerate, "PDFs generated", Snackbar.LENGTH_SHORT).show()
             }
         }
 
@@ -105,20 +112,38 @@ class MainActivity : AppCompatActivity() {
             }
             listOfReceiving.remove(indexReceiving)
 
+            val receiverCode = listOfCodes[n]
+
             mapSecretSanta[personGiving] = personReceiving
-            listSecretSanta.add(PersonPair(personGiving, personReceiving))
+            listSecretSanta.add(PersonPair(personGiving, personReceiving, receiverCode))
+        }
+
+        checkForSelfPaired()
+    }
+
+    private fun checkForSelfPaired() {
+        if (selfPaired) { // re-generate pairings
+            selfPaired = false
+            generatePairings()
+        } else {
+            generatePdf()
         }
     }
 
-    private fun pairingsToPdf() {
+    private fun generatePdf() {
+        // generate pdf for each giver
         for (person in listSecretSanta) {
             // inflate the layout
             val inflater = LayoutInflater.from(this)
             val view = inflater.inflate(R.layout.secret_santa_pdf, null)
 
             // populate layout with giver and receiver names
-            val btnReceiver = view.findViewById<Button>(R.id.button)
-            btnReceiver.text = person.receiver
+            val btnName = view.findViewById<Button>(R.id.btnName)
+            val name = person.receiver
+            btnName.text = "name: $name"
+            val btnCode = view.findViewById<Button>(R.id.btnCode)
+            val code = person.receiverCode
+            btnCode.text = "code: $code"
 
             // using Gkemon's xml to pdf generator
             PdfGenerator.getBuilder()
@@ -128,7 +153,7 @@ class MainActivity : AppCompatActivity() {
                 .setFileName(person.giver) // file name is giver's name
                 .setFolderNameOrPath("PDF-folder")
                 .actionAfterPDFGeneration(PdfGenerator.ActionAfterPDFGeneration.NONE)
-                .build(object: PdfGeneratorListener() {
+                .build(object : PdfGeneratorListener() {
                     override fun onStartPDFGeneration() {
                     }
 
@@ -136,6 +161,46 @@ class MainActivity : AppCompatActivity() {
                     }
                 })
         }
+
+        // generate code list pdf
+        val inflater = LayoutInflater.from(this)
+        val view = inflater.inflate(R.layout.code_list_pdf, null)
+        val btn1 = view.findViewById<Button>(R.id.btn1)
+        val btn2 = view.findViewById<Button>(R.id.btn2)
+        val btn3 = view.findViewById<Button>(R.id.btn3)
+        val btn4 = view.findViewById<Button>(R.id.btn4)
+
+        val p1 = listSecretSanta[0].receiver
+        val c1 = listSecretSanta[0].receiverCode
+        val p2 = listSecretSanta[1].receiver
+        val c2 = listSecretSanta[1].receiverCode
+        val p3 = listSecretSanta[2].receiver
+        val c3 = listSecretSanta[2].receiverCode
+        val p4 = listSecretSanta[3].receiver
+        val c4 = listSecretSanta[3].receiverCode
+
+        btn1.text = "$c1: $p1"
+        btn2.text = "$c2: $p2"
+        btn3.text = "$c3: $p3"
+        btn4.text = "$c4: $p4"
+
+        // using Gkemon's xml to pdf generator
+        PdfGenerator.getBuilder()
+            .setContext(this)
+            .fromViewSource()
+            .fromView(view)
+            .setFileName("CodeList")
+            .setFolderNameOrPath("PDF-folder")
+            .actionAfterPDFGeneration(PdfGenerator.ActionAfterPDFGeneration.NONE)
+            .build(object : PdfGeneratorListener() {
+                override fun onStartPDFGeneration() {
+                }
+
+                override fun onFinishPDFGeneration() {
+                }
+            })
+
+        Snackbar.make(btnGenerate, "PDFs generated", Snackbar.LENGTH_SHORT).show()
     }
 
     private fun setTextWatchers() {
